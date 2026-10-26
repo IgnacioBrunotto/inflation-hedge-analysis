@@ -16,8 +16,28 @@ This project measures real (inflation-adjusted) returns to see which claims hold
 
 ## Data sources
 
-- **Inflation:** US Consumer Price Index from the [FRED API](https://fred.stlouisfed.org/docs/api/fred/) (Federal Reserve Bank of St. Louis)
-- **Asset prices:** TBD
+### Asset prices
+
+Daily prices from Yahoo Finance via [yfinance](https://github.com/ranaroussi/yfinance).
+All returns use adjusted close prices (total return, dividends reinvested).
+
+| Asset class | Ticker | Description |
+|---|---|---|
+| US equities | SPY | S&P 500 index ETF |
+| Long-term bonds | TLT | US Treasury bonds, 20+ years maturity |
+| Inflation-linked bonds | TIP | US Treasury Inflation-Protected Securities (TIPS) |
+| Gold | GLD | Physical gold ETF |
+| Commodities | DBC | Diversified commodity basket ETF |
+| Real estate | VNQ | US REITs ETF |
+| Cash | TB3MS (FRED) | 3-month US Treasury bill rate |
+
+### Inflation
+
+US Consumer Price Index for All Urban Consumers (`CPIAUCSL`, monthly, seasonally adjusted)
+from the [FRED API](https://fred.stlouisfed.org/docs/api/fred/).
+
+**Analysis period:** March 2006 onwards — the first full month with data for all assets
+(DBC started trading in February 2006).
 
 Data is pulled programmatically via API — no static datasets.
 
