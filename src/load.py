@@ -1,7 +1,9 @@
-"""Converts raw data into tables in duckdb DB. Run from the repo root: python src/load.py"""
+"""Load raw files into the DuckDB warehouse as staging tables"""
+
+from pathlib import Path
 
 import duckdb 
-from pathlib import Path
+
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = PROJECT_ROOT / "data" / "raw"
@@ -9,7 +11,7 @@ DB_DIR = PROJECT_ROOT / "data" / "warehouse.duckdb"
 
 
 def load_stg_fred(con):
-    """Create table with fred series, if the table exists the function replaced it"""
+    """Create stg_fred from the raw FRED JSON files (one row per series and month)."""
     con.execute(rf"""
         CREATE OR REPLACE TABLE stg_fred AS
         SELECT
@@ -24,7 +26,7 @@ def load_stg_fred(con):
 
 
 def load_stg_prices(con):
-    """Create stg_fred from the raw FRED JSON files (one row per series and month)."""
+    """Create stg_prices from the raw price CSV files (one row per ticker and day)"""
     con.execute(rf"""
         CREATE OR REPLACE TABLE stg_prices AS
         SELECT
@@ -45,10 +47,10 @@ def main():
 
     with duckdb.connect(str(DB_DIR)) as con:
         load_stg_fred(con)
-        n_fred = con.execute("SELECT COUNT(*) FROM stg_fred")
+        n_fred = con.execute("SELECT COUNT(*) FROM stg_fred").fetchone()[0]
         print(f"stg_fred: {n_fred} rows. ")
         load_stg_prices(con)
-        n_prices = con.execute("SELECT COUNT(*) FROM stg_prices")
+        n_prices = con.execute("SELECT COUNT(*) FROM stg_prices").fetchone()[0]
         print(f"stg_prices: {n_prices} rows") 
 
 
