@@ -108,18 +108,18 @@ CHECKS = [
     },  
 
    {
-        "name": "stg_fred: date and series_id have no nulls",
+        "name": "stg_fred: the only null value is CPI for 2025-10",
         "severity": "error",
         "sql": """
                 SELECT COUNT(*)
                 FROM stg_fred
                 WHERE value IS NULL  
-                AND NOT (series_id = 'CPIAUCSL' AND date = '2025-10-01')
+                AND NOT (series_id = 'CPIAUCSL' AND date = DATE '2025-10-01')
         """
     },  
 
    {
-        "name": "stg_fred: difference between months is 1",
+        "name": "stg_fred: all dates fall on the first day of the month",
         "severity": "error",
         "sql": """
             SELECT COUNT(*)
