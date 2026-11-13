@@ -133,5 +133,49 @@ query that counts problem rows: **errors** stop the pipeline (exit code 1),
 
 ## Results
 
-Coming soon.
+![Real value of $1 invested in each asset since March 2006](reports\figures\real_wealth.png)
 
+### Findings: long-run real wealth (March 2006 – September 2026)
+
+- **Only stocks and gold multiplied purchasing power.** $1 invested in SPY grew to ×5.15
+  in real terms, and in GLD to ×4.03. Real estate (VNQ) roughly doubled (×1.93).
+- **Three assets ended near or below their starting purchasing power:** inflation-linked
+  bonds (TIP ×1.13) and commodities (DBC ×1.04) barely beat inflation, while long-term
+  bonds (TLT ×0.98) and cash (×0.83) lost purchasing power over 20 years.
+- **Commodities behave like insurance.** DBC protected purchasing power during the
+  high-inflation episodes, but over the whole period it created almost no real wealth:
+  the protection came at a high cost the rest of the time.
+- **The path matters as much as the destination.** VNQ fell about 70% from its peak by
+  early 2009, during the housing and financial crisis, and needed years to recover.
+
+
+
+  ![Cumulative real return of each asset in the 2008 and 2021–23 high-inflation episodes](reports\figures\episode_returns.png)
+
+  ### Findings: high-inflation episodes
+
+- **Commodities (DBC) were the only asset with positive real returns in both episodes**
+  (+8.8% in 2008 and +16.7% in 2021–23).
+- **Gold (GLD) roughly preserved purchasing power** (+3.4% and −0.4%): it neither gained
+  nor lost much.
+- **Long-term bonds behaved very differently in each episode.** TLT gained +5.1% in 2008 but
+  lost −30.4% in 2021–23, consistent with the sharp rise in interest rates in 2022: when rates
+  rise, the price of existing long-term bonds falls. Inflation-linked bonds (TIP) also lost −15.7%.
+- **Stocks (SPY) and real estate (VNQ) lost in both episodes.** SPY's −26.8% in 2008 overlaps
+  with the start of the financial crisis; in 2021–23 its loss was much smaller (−5.1%).
+- **Cash lost purchasing power in both episodes** (−2.5% and −9.5%).
+
+
+
+![Real annual return vs. worst real drawdown for each asset](reports\figures\return_vs_drawdown.png)
+
+### Findings: return vs. risk
+
+- **The best real returns came with large drawdowns.** SPY earned about 8.3% per year in
+  real terms and GLD about 7.0%, but at their worst they lost 52% and 46% of their real value.
+- **Larger drawdowns were not rewarded with higher returns.** The two assets with the deepest
+  drawdowns, DBC (−78%) and VNQ (−70%), delivered only about 0.2% and 3.2% per year.
+- **Lower-risk assets barely kept up with inflation.** TIP and cash had the smallest
+  drawdowns (about −22% and −24%), but returned about 0.6% and −0.9% per year.
+- **Conclusion:** taking more risk did not guarantee more return, and no asset delivered
+  strong real returns without deep drawdowns along the way.
