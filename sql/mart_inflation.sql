@@ -36,5 +36,9 @@ SELECT
         WHEN yoy_inflation >= 0.04 THEN 'high'
         WHEN yoy_inflation > 0.02 THEN 'moderate'
         WHEN yoy_inflation <= 0.02 THEN 'low'
-    END AS regime
+    END AS regime,
+    CASE
+        WHEN month BETWEEN DATE '2007-11-01' AND DATE '2008-09-01' THEN  '2008 oil shock'
+        WHEN month BETWEEN DATE '2021-04-01' AND DATE '2023-05-01' THEN  '2021-23 post-COVID'
+    END AS episode
 FROM inflation

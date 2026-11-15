@@ -59,6 +59,7 @@ real_returns AS (
         i.monthly_inflation,
         i.yoy_inflation,
         i.regime,
+        i.episode,
         i.cpi_is_imputed,
         (1 + r.nominal_return) / (1 + i.monthly_inflation) - 1 AS real_return
     FROM all_returns AS r
@@ -91,6 +92,7 @@ SELECT
     monthly_inflation,
     yoy_inflation,
     regime,
+    episode,
     cpi_is_imputed,
     real_return,
     nominal_wealth,
