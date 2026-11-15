@@ -14,6 +14,7 @@ SQL_DIR = PROJECT_ROOT / "sql"
 
 # Order matters: each table can only read from tables built before it.
 MARTS = [
+    "mart_assets",
     "mart_inflation",
     "mart_monthly_returns",
     "mart_asset_summary",
