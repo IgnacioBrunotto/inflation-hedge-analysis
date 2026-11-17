@@ -2,7 +2,19 @@
 
 Which assets actually protected purchasing power against US inflation over the last two decades?
 
-> 🚧 Work in progress
+**TL;DR (March 2006 – September 2026, inflation-adjusted, dividends reinvested)**
+
+- US prices rose **69%**. Cash in Treasury bills **lost 16.5%** of its purchasing power.
+- Only **stocks (SPY, +8.3% per year)** and **gold (GLD, +7.0% per year)** multiplied purchasing
+  power, both with drawdowns of around 50% along the way.
+- In the two high-inflation episodes (2008 and 2021–23), **commodities (DBC) were the only asset
+  with positive real returns in both**. Long-term bonds and inflation-linked bonds fell sharply
+  in 2021–23 as interest rates rose.
+
+![Real value of $1 invested in each asset since March 2006](reports/figures/real_wealth.png)
+
+**Tech stack:** Python (requests, pandas, yfinance) · DuckDB + SQL (CTEs, window functions) ·
+matplotlib · Power BI (DAX) · ruff
 
 ## The question
 
@@ -92,17 +104,22 @@ query that counts problem rows: **errors** stop the pipeline (exit code 1),
 
 ```
 ├── data/
-│   ├── raw/                # Data as received from the APIs (never modified)
-│   ├── processed/          # Analysis outputs
-│   └── warehouse.duckdb    # DuckDB database with staging tables (generated)
+│   ├── raw/                # Data as received from the APIs (generated, not versioned)
+│   ├── processed/          # Mart tables exported to CSV for Power BI (generated)
+│   └── warehouse.duckdb    # DuckDB database with staging and mart tables (generated)
+├── sql/                    # One SQL file per mart table
 ├── src/
 │   ├── ingest.py           # Download raw data from FRED and Yahoo Finance
 │   ├── load.py             # Load raw files into typed staging tables
-│   └── validate.py         # Run data quality checks
-├── notebooks/              # Exploratory analysis
+│   ├── validate.py         # Run 11 data quality checks
+│   ├── transform.py        # Build mart tables from sql/
+│   ├── export.py           # Export mart tables to CSV
+│   └── pipeline.py         # Run all steps in order
+├── notebooks/              # Exploration and analysis
 ├── dashboard/              # Power BI report
 ├── reports/figures/        # Charts used in this README
-└── requirements.txt
+├── requirements.txt
+└── requirements-dev.txt    # Development tools (ruff)
 ```
 
 ## How to run
@@ -124,12 +141,28 @@ query that counts problem rows: **errors** stop the pipeline (exit code 1),
    ```
 4. Get a free API key at [FRED](https://fred.stlouisfed.org/docs/api/api_key.html),
    copy `.env.example` to `.env` and add your key.
-5. Run the pipeline from the repository root:
+5. Run the full pipeline from the repository root:
    ```
-   python src/ingest.py
-   python src/load.py
-   python src/validate.py
+   python src/pipeline.py
    ```
+6. Open `notebooks/04_analysis.ipynb` to reproduce the analysis and charts.
+7. To open the dashboard, open `dashboard/inflation_hedge.pbix` in Power BI Desktop and point
+   the data source to your local `data/processed/` folder
+   (*Transform data → Data source settings → Change source*), then refresh.
+
+## Methodology
+
+- **Real return:** `(1 + nominal return) / (1 + monthly inflation) − 1`. Inflation reduces the value
+  of all your money, not just the gain, so it is divided out rather than subtracted.
+- **Prices:** adjusted close (total return) at the last trading day of each month.
+- **Cash:** 3-month Treasury bill rate (FRED `TB3MS`), converted to a compound monthly return
+  using the previous month's rate (the rate known when the month starts).
+- **Inflation regimes:** by year-over-year CPI inflation — low ≤ 2%, moderate 2–4%, high ≥ 4%.
+- **High-inflation episodes:** consecutive high-inflation months were grouped with a
+  gaps-and-islands query, giving two episodes: **2008 oil shock** (Nov 2007 – Sep 2008) and
+  **2021-23 post-COVID** (Apr 2021 – May 2023). Episodes shorter than 3 months are excluded.
+- **Missing CPI (October 2025):** filled with the geometric mean of September and November,
+  which preserves the inflation between them, and flagged with `cpi_is_imputed`.
 
 ## Results
 
@@ -188,3 +221,22 @@ the results by asset and period.
 ![Long-run real returns page](reports/figures/dashboard_long_run.png)
 
 ![Inflation regimes page](reports/figures/dashboard_regimes.png)
+
+## Limitations
+
+- **Only two high-inflation episodes.** Conclusions about high inflation rest on 2008 and
+  2021–23, and the 2008 episode overlaps with the global financial crisis. They describe what
+  happened, not a general rule.
+- **Monthly data.** Drawdowns are measured from month-end to month-end, so crashes that recover
+  within a month (e.g. March 2020) look smaller than with daily data.
+- **ETFs as proxies.** Each asset class is represented by one ETF, including its fees.
+- **Thresholds are a choice.** Regime results depend on the 2% and 4% cut-offs.
+
+## Next steps
+
+- **An Argentine saver's perspective:** the same assets measured in pesos and deflated by
+  Argentine inflation (requires handling the 2007–2015 CPI data quality issues and multiple
+  exchange rates).
+- **More episodes:** extend the history to the 1970s with index data to test the conclusions on
+  more high-inflation periods.
+- **Dashboard:** rebase wealth lines to the start of the selected period.
