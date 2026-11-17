@@ -218,9 +218,9 @@ query that counts problem rows: **errors** stop the pipeline (exit code 1),
 An interactive Power BI dashboard (`dashboard/inflation_hedge.pbix`) lets you explore
 the results by asset and period.
 
-![Long-run real returns page](reports/figures/dashboard_long_run.png)
+![Long-run real returns page](reports\figures\dashboard_longruns.png)
 
-![Inflation regimes page](reports/figures/dashboard_regimes.png)
+![Inflation regimes page](reports\figures\dashboard_regimes.png)
 
 ## Limitations
 
