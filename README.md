@@ -42,32 +42,48 @@ Daily prices from Yahoo Finance via [yfinance](https://github.com/ranaroussi/yfi
 | Asset class | Ticker | Description |
 |---|---|---|
 | US equities | SPY | S&P 500 index ETF |
+| Real estate | VNQ | US REITs ETF |
+| Commodities | DBC | Diversified commodity basket ETF |
+| Gold | GLD | Physical gold ETF |
 | Long-term bonds | TLT | US Treasury bonds, 20+ years maturity |
 | Inflation-linked bonds | TIP | US Treasury Inflation-Protected Securities (TIPS) |
-| Gold | GLD | Physical gold ETF |
-| Commodities | DBC | Diversified commodity basket ETF |
-| Real estate | VNQ | US REITs ETF |
 | Cash | TB3MS (FRED) | 3-month US Treasury bill rate |
 
-### Methodology notes
+## Methodology
 
-- **Total returns.** All returns use adjusted close prices (dividends and coupons reinvested).
-  Price-only returns would understate SPY's growth since 2006 by ~277 percentage points
-  and would unfairly favour gold, which pays no income, over bonds and REITs.
-- **Analysis period.** March 2006 onwards: the first full month with data for all assets
-  (DBC started trading in February 2006). Data is downloaded from January 2005 so that
-  year-over-year inflation is available from the start.
+- **Real return:** `(1 + nominal return) / (1 + monthly inflation) − 1`. Inflation reduces the value
+  of all your money, not just the gain, so it is divided out rather than subtracted.
+- **Prices:** adjusted close (total return, dividends and coupons reinvested) at the last trading
+  day of each month. Price-only returns would understate SPY's growth since 2006 by ~277
+  percentage points and would unfairly favour gold, which pays no income.
+- **Cash:** 3-month Treasury bill rate (FRED `TB3MS`), converted to a compound monthly return
+  using the previous month's rate (the rate known when the month starts).
+- **Analysis period:** March 2006 onwards, the first full month with data for all assets
+  (DBC started trading in February 2006), up to the last month with published CPI.
+- **Inflation regimes:** by year-over-year CPI inflation — low ≤ 2%, moderate 2–4%, high ≥ 4%.
+- **High-inflation episodes:** consecutive high-inflation months were grouped with a
+  gaps-and-islands query, giving two episodes: **2008 oil shock** (Nov 2007 – Sep 2008) and
+  **2021-23 post-COVID** (Apr 2021 – May 2023). Episodes shorter than 3 months are excluded.
+- **Missing CPI (October 2025):** not published due to the US government shutdown. Filled with
+  the geometric mean of September and November, which preserves the inflation between them,
+  and flagged with `cpi_is_imputed`.
 
 ## Data pipeline
 
 ```
 APIs (FRED, Yahoo Finance)
-   │  src/ingest.py   → data/raw/                raw files, exactly as received
+   │  src/ingest.py     → data/raw/                 raw files, exactly as received
    ▼
-   │  src/load.py     → data/warehouse.duckdb    staging tables (typed, long format)
+   │  src/load.py       → data/warehouse.duckdb     staging tables (typed, long format)
    ▼
-   │  src/validate.py → data quality checks; stops the pipeline on errors
+   │  src/validate.py   → 11 data quality checks; stops the pipeline on errors
+   ▼
+   │  src/transform.py  → mart tables built from the queries in sql/
+   ▼
+   │  src/export.py     → data/processed/           CSV files for Power BI
 ```
+
+`src/pipeline.py` runs all the steps in order with a single command.
 
 Every run reloads all data from scratch. Incremental loading is not used on purpose:
 adjusted prices are recalculated backwards after each dividend, and FRED revises
@@ -95,10 +111,64 @@ query that counts problem rows: **errors** stop the pipeline (exit code 1),
 
 **Known data issues**
 - CPI for October 2025 was not published (US government shutdown). It is stored as
-  NULL, and the check above fails if any other null appears.
+  NULL in staging, and the check above fails if any other null appears.
 - DBC started trading on 2006-02-06, so the common analysis period starts in March 2006.
 - The largest single-day move in the dataset is −19.5% (VNQ, 2008-12-01), so the 25%
   threshold flags data errors such as unadjusted splits, not genuine market crashes.
+
+## Results
+
+### 1. Long-run real wealth
+
+See the chart at the top of this page.
+
+- **Only stocks and gold multiplied purchasing power.** $1 invested in SPY grew to ×5.15
+  in real terms, and in GLD to ×4.03. Real estate (VNQ) roughly doubled (×1.93).
+- **Four assets ended near or below their starting purchasing power:** inflation-linked
+  bonds (TIP ×1.13) and commodities (DBC ×1.04) barely beat inflation, while long-term
+  bonds (TLT ×0.98) and cash (×0.83) lost purchasing power over 20 years.
+- **Commodities behave like insurance.** DBC protected purchasing power during the
+  high-inflation episodes, but over the whole period it created almost no real wealth:
+  the protection came at a high cost the rest of the time.
+- **The path matters as much as the destination.** VNQ fell about 70% from its peak by
+  early 2009, during the housing and financial crisis, and needed years to recover.
+
+### 2. High-inflation episodes
+
+![Cumulative real return of each asset in the 2008 and 2021-23 high-inflation episodes](reports/figures/episode_returns.png)
+
+- **Commodities (DBC) were the only asset with positive real returns in both episodes**
+  (+8.8% in 2008 and +16.7% in 2021–23).
+- **Gold (GLD) roughly preserved purchasing power** (+3.4% and −0.4%): it neither gained
+  nor lost much.
+- **Long-term bonds behaved very differently in each episode.** TLT gained +5.1% in 2008 but
+  lost −30.4% in 2021–23, consistent with the sharp rise in interest rates in 2022: when rates
+  rise, the price of existing long-term bonds falls. Inflation-linked bonds (TIP) also lost −15.7%.
+- **Stocks (SPY) and real estate (VNQ) lost in both episodes.** SPY's −26.8% in 2008 overlaps
+  with the start of the financial crisis; in 2021–23 its loss was much smaller (−5.1%).
+- **Cash lost purchasing power in both episodes** (−2.5% and −9.5%).
+
+### 3. Return vs. risk
+
+![Real annual return vs. worst real drawdown for each asset](reports/figures/return_vs_drawdown.png)
+
+- **The best real returns came with large drawdowns.** SPY earned about 8.3% per year in
+  real terms and GLD about 7.0%, but at their worst they lost 52% and 46% of their real value.
+- **Larger drawdowns were not rewarded with higher returns.** The two assets with the deepest
+  drawdowns, DBC (−78%) and VNQ (−70%), delivered only about 0.2% and 3.3% per year.
+- **Lower-risk assets barely kept up with inflation.** TIP and cash had the smallest
+  drawdowns (about −22% and −24%), but returned about 0.6% and −0.9% per year.
+- **Conclusion:** taking more risk did not guarantee more return, and no asset delivered
+  strong real returns without deep drawdowns along the way.
+
+## Dashboard
+
+An interactive Power BI dashboard (`dashboard/inflation_hedge.pbix`) lets you explore
+the results by asset and period.
+
+![Long-run real returns page of the dashboard](reports/figures/dashboard_long_run.png)
+
+![Inflation regimes page of the dashboard](reports/figures/dashboard_regimes.png)
 
 ## Project structure
 
@@ -149,78 +219,6 @@ query that counts problem rows: **errors** stop the pipeline (exit code 1),
 7. To open the dashboard, open `dashboard/inflation_hedge.pbix` in Power BI Desktop and point
    the data source to your local `data/processed/` folder
    (*Transform data → Data source settings → Change source*), then refresh.
-
-## Methodology
-
-- **Real return:** `(1 + nominal return) / (1 + monthly inflation) − 1`. Inflation reduces the value
-  of all your money, not just the gain, so it is divided out rather than subtracted.
-- **Prices:** adjusted close (total return) at the last trading day of each month.
-- **Cash:** 3-month Treasury bill rate (FRED `TB3MS`), converted to a compound monthly return
-  using the previous month's rate (the rate known when the month starts).
-- **Inflation regimes:** by year-over-year CPI inflation — low ≤ 2%, moderate 2–4%, high ≥ 4%.
-- **High-inflation episodes:** consecutive high-inflation months were grouped with a
-  gaps-and-islands query, giving two episodes: **2008 oil shock** (Nov 2007 – Sep 2008) and
-  **2021-23 post-COVID** (Apr 2021 – May 2023). Episodes shorter than 3 months are excluded.
-- **Missing CPI (October 2025):** filled with the geometric mean of September and November,
-  which preserves the inflation between them, and flagged with `cpi_is_imputed`.
-
-## Results
-
-![Real value of $1 invested in each asset since March 2006](reports\figures\real_wealth.png)
-
-### Findings: long-run real wealth (March 2006 – September 2026)
-
-- **Only stocks and gold multiplied purchasing power.** $1 invested in SPY grew to ×5.15
-  in real terms, and in GLD to ×4.03. Real estate (VNQ) roughly doubled (×1.93).
-- **Three assets ended near or below their starting purchasing power:** inflation-linked
-  bonds (TIP ×1.13) and commodities (DBC ×1.04) barely beat inflation, while long-term
-  bonds (TLT ×0.98) and cash (×0.83) lost purchasing power over 20 years.
-- **Commodities behave like insurance.** DBC protected purchasing power during the
-  high-inflation episodes, but over the whole period it created almost no real wealth:
-  the protection came at a high cost the rest of the time.
-- **The path matters as much as the destination.** VNQ fell about 70% from its peak by
-  early 2009, during the housing and financial crisis, and needed years to recover.
-
-
-
-  ![Cumulative real return of each asset in the 2008 and 2021–23 high-inflation episodes](reports\figures\episode_returns.png)
-
-  ### Findings: high-inflation episodes
-
-- **Commodities (DBC) were the only asset with positive real returns in both episodes**
-  (+8.8% in 2008 and +16.7% in 2021–23).
-- **Gold (GLD) roughly preserved purchasing power** (+3.4% and −0.4%): it neither gained
-  nor lost much.
-- **Long-term bonds behaved very differently in each episode.** TLT gained +5.1% in 2008 but
-  lost −30.4% in 2021–23, consistent with the sharp rise in interest rates in 2022: when rates
-  rise, the price of existing long-term bonds falls. Inflation-linked bonds (TIP) also lost −15.7%.
-- **Stocks (SPY) and real estate (VNQ) lost in both episodes.** SPY's −26.8% in 2008 overlaps
-  with the start of the financial crisis; in 2021–23 its loss was much smaller (−5.1%).
-- **Cash lost purchasing power in both episodes** (−2.5% and −9.5%).
-
-
-
-![Real annual return vs. worst real drawdown for each asset](reports\figures\return_vs_drawdown.png)
-
-### Findings: return vs. risk
-
-- **The best real returns came with large drawdowns.** SPY earned about 8.3% per year in
-  real terms and GLD about 7.0%, but at their worst they lost 52% and 46% of their real value.
-- **Larger drawdowns were not rewarded with higher returns.** The two assets with the deepest
-  drawdowns, DBC (−78%) and VNQ (−70%), delivered only about 0.2% and 3.2% per year.
-- **Lower-risk assets barely kept up with inflation.** TIP and cash had the smallest
-  drawdowns (about −22% and −24%), but returned about 0.6% and −0.9% per year.
-- **Conclusion:** taking more risk did not guarantee more return, and no asset delivered
-  strong real returns without deep drawdowns along the way.
-
-  ## Dashboard
-
-An interactive Power BI dashboard (`dashboard/inflation_hedge.pbix`) lets you explore
-the results by asset and period.
-
-![Long-run real returns page](reports\figures\dashboard_longruns.png)
-
-![Inflation regimes page](reports\figures\dashboard_regimes.png)
 
 ## Limitations
 
