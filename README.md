@@ -166,7 +166,7 @@ See the chart at the top of this page.
 An interactive Power BI dashboard (`dashboard/inflation_hedge.pbix`) lets you explore
 the results by asset and period.
 
-![Long-run real returns page of the dashboard](reports/figures/dashboard_long_run.png)
+![Long-run real returns page of the dashboard](reports/figures/dashboard_longruns.png)
 
 ![Inflation regimes page of the dashboard](reports/figures/dashboard_regimes.png)
 
