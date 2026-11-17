@@ -2,8 +2,7 @@
 
 from pathlib import Path
 
-import duckdb 
-
+import duckdb
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = PROJECT_ROOT / "data" / "raw"
@@ -51,7 +50,7 @@ def main():
         print(f"stg_fred: {n_fred} rows. ")
         load_stg_prices(con)
         n_prices = con.execute("SELECT COUNT(*) FROM stg_prices").fetchone()[0]
-        print(f"stg_prices: {n_prices} rows") 
+        print(f"stg_prices: {n_prices} rows")
 
 
 if __name__ == "__main__":

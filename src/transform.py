@@ -31,7 +31,9 @@ def build_table(con, table_name):
 def main():
     """Build all mart tables in order and print their row counts."""
     if not DB_PATH.exists():
-        raise FileNotFoundError(f"Database not found at {DB_PATH}. Run src/load.py first.")
+        raise FileNotFoundError(
+            f"Database not found at {DB_PATH}. Run src/load.py first."
+        )
 
     with duckdb.connect(str(DB_PATH)) as con:
         for table_name in MARTS:

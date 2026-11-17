@@ -29,7 +29,9 @@ def export_table(con, table_name):
 def main():
     """Export all mart tables to CSV and print their row counts"""
     if not DB_PATH.exists():
-        raise FileNotFoundError(f"Database not found at {DB_PATH}. Run src/transform.py first.")
+        raise FileNotFoundError(
+            f"Database not found at {DB_PATH}. Run src/transform.py first."
+        )
 
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
