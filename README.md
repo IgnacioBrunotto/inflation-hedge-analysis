@@ -179,3 +179,12 @@ query that counts problem rows: **errors** stop the pipeline (exit code 1),
   drawdowns (about −22% and −24%), but returned about 0.6% and −0.9% per year.
 - **Conclusion:** taking more risk did not guarantee more return, and no asset delivered
   strong real returns without deep drawdowns along the way.
+
+  ## Dashboard
+
+An interactive Power BI dashboard (`dashboard/inflation_hedge.pbix`) lets you explore
+the results by asset and period.
+
+![Long-run real returns page](reports/figures/dashboard_long_run.png)
+
+![Inflation regimes page](reports/figures/dashboard_regimes.png)
